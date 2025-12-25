@@ -18,7 +18,7 @@ export default function Assistencia() {
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState('');
 
-  const [view, setView] = useState('kanban'); 
+  const [view, setView] = useState('kanban'); // 'kanban' ou 'materiais'
   const [modalNovo, setModalNovo] = useState(false);
   const [modalTriagem, setModalTriagem] = useState(false);
   const [itemSelecionado, setItemSelecionado] = useState(null);
@@ -151,10 +151,7 @@ export default function Assistencia() {
         </div>
         <button onClick={() => {if(confirm("Excluir chamado?")) supabase.from('assistencias').delete().eq('id', item.id).then(carregarDados)}} className="text-slate-200 hover:text-red-500"><Trash2 size={13}/></button>
       </div>
-      {/* EXIBIÇÃO DO NOME DO CLIENTE NO CARD */}
-      <h3 className="font-black text-slate-800 text-xs uppercase truncate leading-tight">
-        {item.contratos?.clientes?.nome || "Cliente não identificado"}
-      </h3>
+      <h3 className="font-black text-slate-800 text-xs uppercase truncate leading-tight">{item.contratos?.clientes?.nome}</h3>
       <p className="text-[9px] text-slate-400 font-bold mb-3 uppercase italic">{item.ambiente}</p>
       <button onClick={() => abrirGerenciamento(item)} className="w-full py-2 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-colors">Gerenciar</button>
     </div>
@@ -174,6 +171,7 @@ export default function Assistencia() {
     setModalTriagem(true);
   };
 
+  // FUNÇÃO DE SALVAMENTO CORRIGIDA
   const handleCriarChamado = async () => {
       if (!novoChamado.contrato_id || !novoChamado.descricao) {
           return notificar.erro("Preencha contrato e descrição!");
@@ -181,29 +179,28 @@ export default function Assistencia() {
 
       setLoading(true);
       try {
-          const insertData = {
-              contrato_id: parseInt(novoChamado.contrato_id), 
+          // Preparamos o objeto exatamente como o banco espera
+          const dadosParaEnviar = {
+              contrato_id: novoChamado.contrato_id,
               ambiente: novoChamado.ambiente,
               descricao: novoChamado.descricao,
-              fotos_abertura: novoChamado.fotos, 
+              fotos_abertura: novoChamado.fotos, // Mapeia o array de base64 para a coluna correta
               status: 'pendente'
           };
 
           const { error } = await supabase
               .from('assistencias')
-              .insert([insertData]);
+              .insert([dadosParaEnviar]);
 
           if (error) throw error;
 
-          notificar.sucesso("Assistência aberta com sucesso!");
+          notificar.sucesso("Ocorrência aberta!");
           setModalNovo(false);
           setNovoChamado({ contrato_id: '', ambiente: '', descricao: '', fotos: [] });
-          
-          // RECARREGA TUDO PARA GARANTIR QUE OS JOINS (CLIENTES/CONTRATOS) FUNCIONEM NO KANBAN
-          await carregarDados();
+          carregarDados();
       } catch (err) {
-          console.error("Erro técnico no banco:", err);
-          notificar.erro("Erro ao processar solicitação.");
+          console.error(err);
+          notificar.erro("Erro ao abrir assistência técnica.");
       } finally {
           setLoading(false);
       }
@@ -294,7 +291,6 @@ export default function Assistencia() {
         )}
       </main>
 
-      {/* MODAL TRIAGEM */}
       {modalTriagem && itemSelecionado && (
         <div className="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 backdrop-blur-md">
             <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto">
@@ -382,13 +378,7 @@ export default function Assistencia() {
                           }}/>
                           <label htmlFor="f-add" className="cursor-pointer text-blue-600 font-black text-[9px] uppercase flex flex-col items-center gap-2"><Camera size={24}/> Anexar Fotos ({novoChamado.fotos.length})</label>
                       </div>
-                      <button 
-                        onClick={handleCriarChamado} 
-                        disabled={loading} 
-                        className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs shadow-xl tracking-widest active:scale-95 transition-all"
-                      >
-                          {loading ? 'Processando...' : 'Abrir Assistência'}
-                      </button>
+                      <button onClick={handleCriarChamado} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs shadow-xl tracking-widest active:scale-95 transition-all">Abrir Assistência</button>
                   </div>
               </div>
           </div>
