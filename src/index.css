@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#F8FAFC] text-slate-600 antialiased; /* Fundo cinza gelo muito suave */
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-slate-900 tracking-tight;
+  }
+}
+
+@layer components {
+  /* O NOVO CARD PADRÃO */
+  .card {
+    @apply bg-white rounded-2xl border border-slate-100 shadow-sm p-6 transition-all duration-300;
+  }
+  
+  /* Efeito de hover para cards clicáveis */
+  .card-hover {
+    @apply hover:shadow-xl hover:-translate-y-1 hover:border-slate-200 cursor-pointer;
+  }
+
+  /* INPUTS MAIS MODERNOS (Estilo App Bancário) */
+  .label-base {
+    @apply block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1;
+  }
+  
+  .input-base {
+    @apply w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all placeholder:text-slate-400 font-medium;
+  }
+
+  .select-base {
+    @apply w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all appearance-none font-medium cursor-pointer;
+  }
+
+  /* BOTÕES REDESENHADOS */
+  .btn-primary {
+    @apply flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-slate-900 text-white font-bold text-sm shadow-lg shadow-slate-200 hover:bg-slate-800 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200;
+  }
+
+  .btn-secondary {
+    @apply flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white text-slate-600 font-bold text-sm border border-slate-200 shadow-sm hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all active:scale-95;
+  }
+
+  .btn-danger {
+    @apply flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-red-50 text-red-600 font-bold text-sm border border-red-100 hover:bg-red-100 hover:border-red-200 transition-all;
+  }
+}
+
+/* Animação suave de entrada */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
