@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { LogIn, UserPlus, Loader2 } from 'lucide-react';
+import { LogIn, UserPlus, Loader2, AlertCircle } from 'lucide-react';
 import { notificar } from '../utils';
 
 export default function Login() {
@@ -43,12 +43,22 @@ export default function Login() {
         
       } else {
         // --- LOGIN ---
+        // Adicionada tentativa com timeout implícito e tratamento de erro de rede
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        
+        if (error) {
+          // Detecta se o erro é de conexão (CORS ou falha de rede)
+          if (error.message.includes('fetch') || error.status === 0) {
+            throw new Error("Erro de conexão com o banco. Verifique se o endereço temporipro2.vercel.app está autorizado no painel do Supabase.");
+          }
+          throw error;
+        }
+        
         notificar.sucesso("Bem-vindo de volta!");
       }
     } catch (error) {
-      notificar.erro(error.message);
+      console.error("Erro de Autenticação:", error);
+      notificar.erro(error.message || "Erro ao tentar conectar ao servidor.");
     } finally {
       setLoading(false);
     }
