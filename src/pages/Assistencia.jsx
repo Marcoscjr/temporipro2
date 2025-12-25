@@ -95,7 +95,6 @@ export default function Assistencia() {
 
   const salvarTriagemEAgendamento = async () => {
     const isAgendado = itemSelecionado.status === 'agendado';
-    const podeAgendar = !triagemDados.precisa_material || triagemDados.material_disponivel;
     
     let novoStatus = itemSelecionado.status;
     if (isAgendado) {
@@ -134,7 +133,6 @@ export default function Assistencia() {
     <div key={item.id} className="bg-white p-4 rounded-[1.5rem] border border-slate-100 shadow-sm mb-3 transition-all hover:shadow-md">
       <div className="flex justify-between items-start mb-2">
         <div className="flex flex-col gap-1">
-            {/* TAG PRINCIPAL DINÂMICA (CORRIGIDA) */}
             <span className={`text-[8px] w-fit font-black px-2 py-0.5 rounded-md uppercase ${
                 item.status === 'concluido' ? 'bg-green-50 text-green-600' :
                 item.status === 'agendado' ? 'bg-blue-50 text-blue-600' : 
@@ -145,7 +143,6 @@ export default function Assistencia() {
                 {(item.status === 'aguardando_material' && item.material_disponivel) ? 'LIBERADO' : item.status.replace('_', ' ')}
             </span>
             
-            {/* TAG SECUNDÁRIA APENAS SE MATERIAL OK */}
             {item.material_disponivel && item.status !== 'concluido' && (
                 <span className="flex items-center gap-1 text-[7px] font-black text-green-700 bg-green-100 px-1.5 py-0.5 rounded uppercase tracking-tighter">
                     <Check size={8}/> PRONTO P/ AGENDAR
@@ -172,6 +169,41 @@ export default function Assistencia() {
       data_agendamento: item.data_agendamento ? item.data_agendamento.slice(0, 16) : ''
     });
     setModalTriagem(true);
+  };
+
+  // FUNÇÃO DE SALVAMENTO CORRIGIDA
+  const handleCriarChamado = async () => {
+      if (!novoChamado.contrato_id || !novoChamado.descricao) {
+          return notificar.erro("Preencha contrato e descrição!");
+      }
+
+      setLoading(true);
+      try {
+          // Preparamos o objeto exatamente como o banco espera
+          const dadosParaEnviar = {
+              contrato_id: novoChamado.contrato_id,
+              ambiente: novoChamado.ambiente,
+              descricao: novoChamado.descricao,
+              fotos_abertura: novoChamado.fotos, // Mapeia o array de base64 para a coluna correta
+              status: 'pendente'
+          };
+
+          const { error } = await supabase
+              .from('assistencias')
+              .insert([dadosParaEnviar]);
+
+          if (error) throw error;
+
+          notificar.sucesso("Ocorrência aberta!");
+          setModalNovo(false);
+          setNovoChamado({ contrato_id: '', ambiente: '', descricao: '', fotos: [] });
+          carregarDados();
+      } catch (err) {
+          console.error(err);
+          notificar.erro("Erro ao abrir assistência técnica.");
+      } finally {
+          setLoading(false);
+      }
   };
 
   return (
@@ -259,7 +291,6 @@ export default function Assistencia() {
         )}
       </main>
 
-      {/* MODAL TRIAGEM */}
       {modalTriagem && itemSelecionado && (
         <div className="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 backdrop-blur-md">
             <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto">
@@ -347,13 +378,7 @@ export default function Assistencia() {
                           }}/>
                           <label htmlFor="f-add" className="cursor-pointer text-blue-600 font-black text-[9px] uppercase flex flex-col items-center gap-2"><Camera size={24}/> Anexar Fotos ({novoChamado.fotos.length})</label>
                       </div>
-                      <button onClick={async () => {
-                          if (!novoChamado.contrato_id || !novoChamado.descricao) return notificar.erro("Preencha contrato e descrição!");
-                          setLoading(true);
-                          const { error } = await supabase.from('assistencias').insert([{ ...novoChamado, fotos_abertura: novoChamado.fotos, status: 'pendente' }]);
-                          setLoading(false);
-                          if (!error) { notificar.sucesso("Ocorrência aberta!"); setModalNovo(false); setNovoChamado({ contrato_id: '', ambiente: '', descricao: '', fotos: [] }); carregarDados(); }
-                      }} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs shadow-xl tracking-widest active:scale-95 transition-all">Abrir Assistência</button>
+                      <button onClick={handleCriarChamado} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs shadow-xl tracking-widest active:scale-95 transition-all">Abrir Assistência</button>
                   </div>
               </div>
           </div>
